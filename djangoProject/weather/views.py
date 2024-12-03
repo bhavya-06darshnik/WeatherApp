@@ -1,50 +1,42 @@
 from django.shortcuts import render
 import requests
 from .models import City
-
+from .forms import CityForm
 
 def index(request):
     url = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=imperial&appid=dcf979b10ea6b470156b7cde56495f5f'
 
-    city = 'Las Vegas'
+    # Retrieve all cities from the database
+    cities = City.objects.all()
 
-    city_weather = requests.get(url.format(city)).json()
-    weather = {
-        'city': city,
-        'temperature': city_weather['main']['temp'],
-        'description': city_weather['weather'][0]['description'],
-        'icon': city_weather['weather'][0]['icon']
-    }
+    # Handle form submission
+    if request.method == 'POST':  # Only true if a form is submitted
+        form = CityForm(request.POST)
+        if form.is_valid():
+            form.save()  # Save only if the form is valid
 
-    context = {'weather': weather}
-
-    def index(request):
-        url = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=imperial&appid=dcf979b10ea6b470156b7cde56495f5f'
-
-        cities = City.objects.all()  # return all the cities in the database
-
-        cities = City.objects.all()  # return all the cities in the database
-
-        weather_data = []
-
-        for city in cities:
-            city_weather = requests.get(
-                url.format(city)).json()  # request the API data and convert the JSON to Python data types
-
+    # Prepare weather data for all cities
+    weather_data = []
+    for city in cities:
+        city_weather = requests.get(url.format(city.name)).json()  # Use the city's name attribute
+        if city_weather.get('main'):  # Ensure the API returned valid data
             weather = {
-                'city': city,
+                'city': city.name,
                 'temperature': city_weather['main']['temp'],
                 'description': city_weather['weather'][0]['description'],
                 'icon': city_weather['weather'][0]['icon']
             }
+            weather_data.append(weather)
 
-            weather_data.append(weather)  # add the data for the current city into our list
+    # Prepare the form for the template
+    form = CityForm()
 
-        context = {'weather_data': weather_data}
-
-    #print(city_weather)
-
-
+    # Pass data to the template
+    context = {'weather_data': weather_data, 'form': form}
+    return render(request, 'index.html', context)
 
 
-    return render(request, 'index.html')
+
+
+
+
