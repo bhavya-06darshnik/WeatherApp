@@ -3,8 +3,8 @@ import requests
 from .models import City
 from .forms import CityForm
 
-def index(request):
-    url = 'http://api.openweathermap.org/data/2.5/weather?q={}&units=imperial&appid=dcf979b10ea6b470156b7cde56495f5f'
+def index(request):56b7cde56495f5f'
+    url = 'TAKE YOUR API KEY FROM OPENWEATHERMAP'
 
     # Retrieve all cities from the database
     cities = City.objects.all()
